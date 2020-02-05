@@ -1,0 +1,20 @@
+header {
+  width: 75%;
+  height: 5%;
+  position: fixed;
+  background-color: #f7f7f7;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  vertical-align: center;
+  text-align:center;
+}
+footer {
+  width: 75%;
+  height: 5%;
+  position: fixed;
+  background-color: #f7f7f7;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  vertical-align: center;
+  text-align: center;
+}
