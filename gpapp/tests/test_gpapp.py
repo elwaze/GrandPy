@@ -67,7 +67,7 @@ class TestParser:
             assert result == question[3]
 
 
-class MapTest:
+class TestMap:
     """Class for tests of functions contained in module map_requestor.py"""
     def setup(self):
         """Setup for the google maps requestor tests"""
@@ -83,10 +83,10 @@ class MapTest:
             return self.results
 
         monkeypatch.setattr(urllib.request, 'urlopen', mockreturn)
+        response = self.requestor.google_request()
         # expected result
-        assert self.requestor.gmap_address(self.requestor.query_keywords) is True
-        assert self.requestor.latitude == 20
-        assert self.requestor.longitude == 30
+        assert response.latitude == 20
+        assert response.longitude == 30
 
     def test_api_request_empty(self):
         pass
@@ -95,5 +95,5 @@ class MapTest:
         pass
 
 
-class WikiTest:
+class TestWiki:
     """Class for tests of functions contained in module wiki_requestor.py"""
