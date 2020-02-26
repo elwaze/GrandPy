@@ -31,3 +31,16 @@ class Parser:
 
     def get_key_words(self, question):
         """Selects the useful information to be inserted in the requests"""
+        request = ""
+        for word in question:
+            if word in self.location_words:
+                index = question.index(word)
+                request = ' '.join(question[index + 1:])
+                break
+        if not request:
+            request = question
+        try:
+            request = request.replace("à", ",")
+        except:
+            pass
+        return request

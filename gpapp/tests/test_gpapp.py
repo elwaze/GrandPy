@@ -33,7 +33,7 @@ class TestParser:
             ("Salut pépé ! Où je peux trouver le parc de la tête d'or à Lyon ?",
              ["salut", "pépé", "où", "je", "peux", "trouver", "le", "parc", "de", "la", "tête", "d", "or", "à", "lyon"],
              ["salut", "pépé", "où", "trouver", "parc", "tête", "or", "à", "lyon"],
-             "parc tete or lyon")
+             "parc tête or , lyon")
         ]
 
     def test_split_question(self):
