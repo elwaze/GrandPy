@@ -606,5 +606,22 @@
     "été",
     "être",
     "ô"
-  ]
+  ],
+  "punctuation_characters" : [
+    "'",
+    ",",
+    ".",
+    ":",
+    " ",
+    "!",
+    "?",
+    ";"
+  ],
+  "location_words" : [
+    "trouv",
+    "où",
+    "à",
+    "situ",
+    "montr",
+    "localis"]
 }

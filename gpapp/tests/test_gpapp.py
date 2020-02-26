@@ -28,20 +28,20 @@ class TestParser:
         self.questions = [
             ("dis, grand-py, tu peux me donner l'adresse de la Tour Eiffel ?",
              ["dis", "grand-py", "tu", "peux", "me", "donner", "l", "adresse", "de", "la", "tour", "eiffel"],
-             ["donner", "adresse", "tour", "eiffel"],
+             ["dis", "grand-py", "donner", "adresse", "tour", "eiffel"],
              "tour eiffel"),
             ("Salut pépé ! Où je peux trouver le parc de la tête d'or à Lyon ?",
-             ["salut", "pépé", "où", "je", "peux", "trouver", "le", "parc", "de", "la", "tête", "d", "or", "à", "Lyon"],
-             ["trouver", "parc", "tête", "or", "lyon"],
+             ["salut", "pépé", "où", "je", "peux", "trouver", "le", "parc", "de", "la", "tête", "d", "or", "à", "lyon"],
+             ["salut", "pépé", "où", "trouver", "parc", "tête", "or", "à", "lyon"],
              "parc tete or lyon")
         ]
 
     def test_split_question(self):
-        """Checks that the split function returns a list of words"""
+        """Checks that the question_split function returns a list of words"""
 
         # calling function
         for question in self.questions:
-            result = self.parser.split(question[0])
+            result = self.parser.question_split(question[0])
             # expected result
             assert result == question[1]
 
