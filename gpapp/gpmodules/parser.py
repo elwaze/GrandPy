@@ -14,33 +14,35 @@ class Parser:
         self.stop_words = stop_words["stop_words"]
         self.punctuation_characters = stop_words["punctuation_characters"]
         self.location_words = stop_words["location_words"]
+        self.re_punctuation = re.compile(
+            '|'.join(map(re.escape, self.punctuation_characters))
+        )
 
     def question_split(self, question):
         """Splits the question into a list of words"""
-        regexp = '|'.join(map(re.escape, self.punctuation_characters))
-        question = question.lower()
-        question = re.split(regexp, question)
+        question = str(question).lower()
+        question = self.re_punctuation.split(question)
         question = [element for element in question if element != ""]
-
         return question
 
     def remove_stopwords(self, question):
         """Removes the useless stopwords contained in the 'stop_words.json file"""
+        if not isinstance(question, (tuple, list, set)):
+            raise TypeError('Question is not an iterable!')
         question = [word for word in question if word not in self.stop_words]
         return question
 
     def get_key_words(self, question):
         """Selects the useful information to be inserted in the requests"""
-        request = ""
+        if not isinstance(question, (tuple, list, set)):
+            raise TypeError('Question is not an iterable!')
+
+        question = ["," if word == "à" else word for word in question]
+        request = '+'.join(question)
         for word in question:
             if word in self.location_words:
                 index = question.index(word)
-                request = ' '.join(question[index + 1:])
+                request = '+'.join(question[index + 1:])
                 break
-        if not request:
-            request = question
-        try:
-            request = request.replace("à", ",")
-        except:
-            pass
+
         return request

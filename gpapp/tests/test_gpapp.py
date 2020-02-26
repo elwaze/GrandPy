@@ -1,8 +1,11 @@
 #! /usr/bin/env python
 
+import json
+import urllib.request
+from io import BytesIO
 from gpapp.gpmodules.parser import Parser
-# from gpapp.gpmodules.map_requestor import Requestor
-# from gpapp.gpmodules.wiki_requestor import Requestor
+from gpapp.gpmodules.map_requestor import MapRequestor
+# from gpapp.gpmodules.wiki_requestor import WikiRequestor
 
 # # modele
 # def mock_fonctionamocker():
@@ -29,11 +32,11 @@ class TestParser:
             ("dis, grand-py, tu peux me donner l'adresse de la Tour Eiffel ?",
              ["dis", "grand-py", "tu", "peux", "me", "donner", "l", "adresse", "de", "la", "tour", "eiffel"],
              ["dis", "grand-py", "donner", "adresse", "tour", "eiffel"],
-             "tour eiffel"),
+             "tour+eiffel"),
             ("Salut pépé ! Où je peux trouver le parc de la tête d'or à Lyon ?",
              ["salut", "pépé", "où", "je", "peux", "trouver", "le", "parc", "de", "la", "tête", "d", "or", "à", "lyon"],
              ["salut", "pépé", "où", "trouver", "parc", "tête", "or", "à", "lyon"],
-             "parc tête or , lyon")
+             "parc+tête+or+,+lyon")
         ]
 
     def test_split_question(self):
@@ -66,6 +69,30 @@ class TestParser:
 
 class MapTest:
     """Class for tests of functions contained in module map_requestor.py"""
+    def setup(self):
+        """Setup for the google maps requestor tests"""
+        self.requestor = MapRequestor("tour+eiffel")
+
+    def test_api_request_ok(self, monkeypatch):
+        results = {
+
+        }
+        self.results = BytesIO(json.dumps(results).encode())
+
+        def mockreturn(request):
+            return self.results
+
+        monkeypatch.setattr(urllib.request, 'urlopen', mockreturn)
+        # expected result
+        assert self.requestor.gmap_address(self.requestor.query_keywords) is True
+        assert self.requestor.latitude == 20
+        assert self.requestor.longitude == 30
+
+    def test_api_request_empty(self):
+        pass
+
+    def test_api_request_notfound(self):
+        pass
 
 
 class WikiTest:
