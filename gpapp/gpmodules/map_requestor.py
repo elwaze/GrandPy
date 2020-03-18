@@ -2,27 +2,41 @@
 """ Module requesting the google maps API."""
 
 import config
-from urllib import request
-import json
+import requests
 
 
 class MapRequestor :
     """Class which requests the google maps API."""
 
+    @property
+    def url(self):
+        return "".join([self.maps_url, self.key_words, "&key=", self.key])
+
     def __init__(self, key_words):
-        #self.key = config.GOOGLE_KEY
-        self.key = "hsrh"
+        self.key = config.GOOGLE_KEY
         self.key_words = key_words
-        self.url = config.GOOGLE_MAPS_URL
-        self.response = "   "
-        self.longitude = 0
-        self.latitude = 0
+        self.maps_url = config.GOOGLE_MAPS_URL
 
     def google_request(self):
-        url = "".join([self.url, self.key_words, "&key=", self.key])
-        response = request.urlopen(url)
-        self.response = json.loads(response.read().decode("utf8"))
-        print(self.response)
-        self.response.longitude =
-        self.response.latitude =
-        self.response.addresss = 
+
+        response = requests.get(self.url)
+        if not response.ok:
+            response.raise_for_status()
+
+        data = response.json()
+        status = data['status']
+
+        if status == "OK":
+            result = dict(
+                status=status,
+                address=data['results'][0]['formatted_address'],
+                latitude=data['results'][0]['geometry']['location']['lat'],
+                longitude=data['results'][0]['geometry']['location']['lng'],
+            )
+        else:
+            result = dict(
+                status=status,
+                message=data.get('error_message', 'unknown issue'),
+            )
+
+        return result, 200

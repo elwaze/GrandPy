@@ -1,26 +1,14 @@
 #! /usr/bin/env python
 
+import os
 import json
-import urllib.request
+import requests
+import unittest
+import unittest.mock as mock
 from io import BytesIO
 from gpapp.gpmodules.parser import Parser
 from gpapp.gpmodules.map_requestor import MapRequestor
-# from gpapp.gpmodules.wiki_requestor import WikiRequestor
-
-# # modele
-# def mock_fonctionamocker():
-#     # rq : peut etre def dans la fonction de test si n'est pas utilise apres
-#     return "resultat attendu"
-#
-#
-# def test_nomfonction_cequejeteste(monkeypatch):
-#     # soit ...(contexte de test (setup))
-#     monkeypatch.setattr("gpapp.app.fonctionamocker", mock_fonctionamocker())
-#     # quand... (action)
-#     result = parser.nomfonction()
-#     # alors je constate que... (resultat)
-#     assert result == "resultat attendu"
-# # fin modele
+from gpapp.gpmodules.wiki_requestor import WikiRequestor
 
 
 class TestParser:
@@ -67,33 +55,172 @@ class TestParser:
             assert result == question[3]
 
 
-class TestMap:
+class TestMap(unittest.TestCase):
     """Class for tests of functions contained in module map_requestor.py"""
-    def setup(self):
+    def setUp(self):
         """Setup for the google maps requestor tests"""
+        os.environ['GOOGLE_API_KEY'] = 'testouille de la grenouille'
         self.requestor = MapRequestor("tour+eiffel")
 
-    def test_api_request_ok(self, monkeypatch):
-        results = {
+    def _setup_mocked_response(self, response, ok_status=True):
+        mocked_response = mock.Mock(ok=ok_status)
+        mocked_response.json.return_value = response
+        return mocked_response
 
+    @mock.patch('requests.get')
+    def test_api_request_ok(self, mocked_requests_get):
+        expected_result = {
+            "results": [
+                {
+                    "formatted_address": "Champ de Mars, 5 Avenue Anatole France, 75007 Paris",
+                    "geometry": {
+                        "location": {
+                            "lat": 48.85837,
+                            "lng": 2.94481
+                        }
+                    }
+                }
+            ],
+            "status": "OK"
         }
-        self.results = BytesIO(json.dumps(results).encode())
-
-        def mockreturn(request):
-            return self.results
-
-        monkeypatch.setattr(urllib.request, 'urlopen', mockreturn)
-        response = self.requestor.google_request()
+        mocked_response = self._setup_mocked_response(expected_result)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.google_request()
         # expected result
-        assert response.latitude == 20
-        assert response.longitude == 30
 
-    def test_api_request_empty(self):
-        pass
+        mocked_requests_get.assert_called_once_with(self.requestor.url)
 
-    def test_api_request_notfound(self):
-        pass
+        self.assertDictEqual(response, dict(
+            status=expected_result['status'],
+            address=expected_result['results'][0]['formatted_address'],
+            latitude=expected_result['results'][0]['geometry']['location']['lat'],
+            longitude=expected_result['results'][0]['geometry']['location']['lng'],
+        ))
+
+    @mock.patch('requests.get')
+    def test_api_request_error(self, mocked_requests_get):
+
+        expected_result = {
+            "results": [],
+            "status": "ERROR",
+            "message": 'unknown issue'
+        }
+
+        mocked_response = self._setup_mocked_response(expected_result, ok_status=False)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.google_request()
+
+        mocked_requests_get.assert_called_once_with(self.requestor.url)
+
+        self.assertDictEqual(response, dict(
+            status=expected_result['status'],
+            message=expected_result['message']
+        ))
 
 
-class TestWiki:
+class TestWiki(unittest.TestCase):
     """Class for tests of functions contained in module wiki_requestor.py"""
+
+    def setUp(self):
+        """Setup for the wikipedia requestor tests"""
+        geometry = '48.85837|2.294481'
+        key_words = 'tour+eiffel'
+        self.url_ask = "fake url for test"
+        self.requestor = WikiRequestor(geometry, key_words)
+        self.expected_result = {
+            "query": {
+                "pages": {
+                    1359783: {
+                        "pageid": 1359783,
+                        "ns": 0,
+                        "title": "Tour Eiffel",
+                        "extract": "La tour Eiffel est une tour de fer puddlé de 324 mètres de hauteur (avec antennes) "
+                                   "située à Paris, à l’extrémité nord-ouest du parc du Champ-de-Mars en bordure de la "
+                                   "Seine dans le 7e arrondissement. Son adresse officielle est 5, avenue Anatole-France."
+                    }
+                }
+            }
+        }
+
+
+    def _setup_mocked_response(self, response):
+        mocked_response = mock.Mock()
+        mocked_response.json.return_value = response
+        return mocked_response
+
+    @mock.patch('requests.get')
+    def test_wiki_request_ok(self, mocked_requests_get):
+
+        mocked_response = self._setup_mocked_response(self.expected_result)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.wiki_request(self.url_ask)
+        mocked_requests_get.assert_called_once_with(self.requestor.url)
+
+        self.assertDictEqual(response, dict(
+            #title=self.expected_result['query']['pages'][1359783]['title'],
+            #extract=self.expected_result['query']['pages'][1359783]['extract']
+        ))
+
+    @mock.patch('requests.get')
+    def test_wiki_request_error(self, mocked_requests_get):
+
+        mocked_response = self._setup_mocked_response(self.expected_result)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.wiki_request(self.url_ask)
+        mocked_requests_get.assert_called_once_with(self.requestor.url)
+
+        self.assertDictEqual(response, dict(
+            #title=self.expected_result['query']['pages'][1359783]['title'],
+            #extract=self.expected_result['query']['pages'][1359783]['extract']
+        ))
+
+    @mock.patch('requests.get')
+    def page_id_search_ok(self, mocked_requests_get):
+
+        mocked_response = self._setup_mocked_response(self.expected_result)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.wiki_request(self.url_ask)
+        mocked_requests_get.assert_called_once_with(self.requestor.url)
+
+        self.assertDictEqual(response, dict(
+            #title=self.expected_result['query']['pages'][1359783]['title'],
+            #extract=self.expected_result['query']['pages'][1359783]['extract']
+        ))
+
+    @mock.patch('requests.get')
+    def page_id_search_error(self, mocked_requests_get):
+
+        mocked_response = self._setup_mocked_response(self.expected_result)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.wiki_request(self.url_ask)
+        mocked_requests_get.assert_called_once_with(self.requestor.url)
+
+        self.assertDictEqual(response, dict(
+            #title=self.expected_result['query']['pages'][1359783]['title'],
+            #extract=self.expected_result['query']['pages'][1359783]['extract']
+        ))
+
+    @mock.patch('requests.get')
+    def extract_ok(self, mocked_requests_get):
+
+        mocked_response = self._setup_mocked_response(self.expected_result)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.wiki_request(self.url_ask)
+        mocked_requests_get.assert_called_once_with(self.requestor.url)
+
+        self.assertDictEqual(response, dict(
+            #title=self.expected_result['query']['pages'][1359783]['title'],
+            #extract=self.expected_result['query']['pages'][1359783]['extract']
+        ))
+    @mock.patch('requests.get')
+    def extract_error(self, mocked_requests_get):
+
+        mocked_response = self._setup_mocked_response(self.expected_result)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.wiki_request(self.url_ask)
+        mocked_requests_get.assert_called_once_with(self.requestor.url)
+
+        self.assertDictEqual(response, dict(
+            #title=self.expected_result['query']['pages'][1359783]['title'],
+            #extract=self.expected_result['query']['pages'][1359783]['extract']
+        ))
