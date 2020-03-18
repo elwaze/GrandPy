@@ -285,14 +285,14 @@ class TestWiki(unittest.TestCase):
                 }
             }
         }
-        id_mocked_response = self._setup_mocked_response(id_expected_result)
+        id_mocked_response = self._setup_mocked_response(id_expected_result, magic=True)
         mocked_page_id_search.return_value = id_mocked_response, expected_code
-        wiki_mocked_response = self._setup_mocked_response(wiki_expected_result)
+        wiki_mocked_response = self._setup_mocked_response(wiki_expected_result, magic=True)
         mocked_wiki_request.return_value = wiki_mocked_response, expected_code
         response, code = self.requestor.extract()
         mocked_page_id_search.assert_called_once_with(self.requestor.url +
                                                       "&exintro=1&explaintext=1&exsentences=2&pageids=" +
-                                                      id_expected_result['pageid'])
+                                                      str(id_expected_result['pageid']))
 
         self.assertDictEqual(response, dict(
             title=id_expected_result['title'],
