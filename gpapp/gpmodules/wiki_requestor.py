@@ -13,21 +13,20 @@ class WikiRequestor :
         self.geometry = geometry
         self.url = config.WIKIPEDIA_URL
 
-    def wiki_request(self, ask):
+    def wiki_request(self, url):
         """
         Initial request of Wiki API.
-        :param ask: url for the request
+        :param url: url for the request
         (depending if it's a request by key words or by geolocation).
         :return: response received from thi API.
         """
 
-        response = requests.get(ask)
+        response = requests.get(url)
         if not response.ok:
             response.raise_for_status()
-
-        response = response['query']
         data = response.json()
-        return data, 200
+
+        return data['query'], 200
 
     def page_id_search(self):
         """

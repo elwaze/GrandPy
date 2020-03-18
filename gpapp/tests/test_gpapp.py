@@ -6,6 +6,8 @@ import requests
 import unittest
 import unittest.mock as mock
 from io import BytesIO
+
+import config
 from gpapp.gpmodules.parser import Parser
 from gpapp.gpmodules.map_requestor import MapRequestor
 from gpapp.gpmodules.wiki_requestor import WikiRequestor
@@ -86,8 +88,8 @@ class TestMap(unittest.TestCase):
         mocked_response = self._setup_mocked_response(expected_result)
         mocked_requests_get.return_value = mocked_response
         response, code = self.requestor.google_request()
-        # expected result
 
+        # expected result
         mocked_requests_get.assert_called_once_with(self.requestor.url)
 
         self.assertDictEqual(response, dict(
@@ -127,7 +129,58 @@ class TestWiki(unittest.TestCase):
         key_words = 'tour+eiffel'
         self.url_ask = "fake url for test"
         self.requestor = WikiRequestor(geometry, key_words)
-        self.expected_result = {
+
+    def _setup_mocked_response(self, response, **options):
+        magic = options.pop('magic', False)
+        if magic:
+            mocked_response = mock.MagicMock(**options)
+        else:
+            mocked_response = mock.Mock(**options)
+        mocked_response.json.return_value = response
+        return mocked_response
+
+    def test_wiki_request_url(self):
+        self.assertEqual(self.requestor.url, config.WIKIPEDIA_URL)
+
+    @mock.patch('requests.get')
+    def test_wiki_request_for_page_id_ok(self, mocked_requests_get):
+
+        expected_result = {
+            "batchcomplete": "",
+            "continue": {
+                "sroffset": 1,
+                "continue": "-||extracts"
+            },
+            "query": {
+                "searchinfo": {
+                    "totalhits": 3882
+                },
+                "search": [
+                    {
+                        "ns": 0,
+                        "title": "Tour Eiffel",
+                        "pageid": 1359783,
+                        "size": 129846,
+                        "wordcount": 14637,
+                        "snippet": 'Pour les articles homonymes, voir <span class="searchmatch">Tour</span> <span class="searchmatch">Eiffel</span> (homonymie). L\'introduction de cet article est soit absente, soit non conforme aux conventions de Wikipédia',
+                        "timestamp": "2020-03-10T03:15:13Z"
+                    }
+                ]
+            }
+        }
+
+        mocked_response = self._setup_mocked_response(expected_result)
+        mocked_requests_get.return_value = mocked_response
+        response, code = self.requestor.wiki_request(self.url_ask)
+        mocked_requests_get.assert_called_once_with(self.url_ask)
+
+        self.assertDictEqual(response, expected_result["query"])
+
+    @mock.patch('requests.get')
+    def test_wiki_request_for_extract_ok(self, mocked_requests_get):
+
+        expected_result = {
+            "batchcomplete": "",
             "query": {
                 "pages": {
                     1359783: {
@@ -136,91 +189,150 @@ class TestWiki(unittest.TestCase):
                         "title": "Tour Eiffel",
                         "extract": "La tour Eiffel est une tour de fer puddlé de 324 mètres de hauteur (avec antennes) "
                                    "située à Paris, à l’extrémité nord-ouest du parc du Champ-de-Mars en bordure de la "
-                                   "Seine dans le 7e arrondissement. Son adresse officielle est 5, avenue Anatole-France."
+                                   "Seine dans le 7e arrondissement."
+                                   " Son adresse officielle est 5, avenue Anatole-France."
                     }
                 }
             }
         }
 
-
-    def _setup_mocked_response(self, response):
-        mocked_response = mock.Mock()
-        mocked_response.json.return_value = response
-        return mocked_response
-
-    @mock.patch('requests.get')
-    def test_wiki_request_ok(self, mocked_requests_get):
-
-        mocked_response = self._setup_mocked_response(self.expected_result)
+        mocked_response = self._setup_mocked_response(expected_result)
         mocked_requests_get.return_value = mocked_response
         response, code = self.requestor.wiki_request(self.url_ask)
-        mocked_requests_get.assert_called_once_with(self.requestor.url)
+        mocked_requests_get.assert_called_once_with(self.url_ask)
 
-        self.assertDictEqual(response, dict(
-            #title=self.expected_result['query']['pages'][1359783]['title'],
-            #extract=self.expected_result['query']['pages'][1359783]['extract']
-        ))
+        self.assertDictEqual(response, expected_result["query"])
 
     @mock.patch('requests.get')
-    def test_wiki_request_error(self, mocked_requests_get):
+    def test_wiki_request_raise_for_status(self, mocked_requests_get):
 
-        mocked_response = self._setup_mocked_response(self.expected_result)
+        mocked_response = self._setup_mocked_response({'query': None}, ok=False)
         mocked_requests_get.return_value = mocked_response
-        response, code = self.requestor.wiki_request(self.url_ask)
-        mocked_requests_get.assert_called_once_with(self.requestor.url)
+
+        self.requestor.wiki_request(self.url_ask)
+
+        mocked_response.raise_for_status.assert_called_once_with()
+
+    @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.wiki_request')
+    def test_page_id_search_ok(self, mocked_wiki_request):
+        expected_search_item = {
+            "ns": 0,
+            "title": "Tour Eiffel",
+            "pageid": 1359783,
+            "size": 129846,
+            "wordcount": 14637,
+            "snippet": (
+                'Pour les articles homonymes, voir <span class="searchmatch">Tour</span> '
+                '<span class="searchmatch">Eiffel</span> (homonymie). '
+                'L\'introduction de cet article est soit absente, soit non conforme aux conventions de Wikipédia'
+            ),
+            "timestamp": "2020-03-10T03:15:13Z"
+        }
+        expected_result = {
+            "searchinfo": {
+                "totalhits": 3882
+            },
+            "search": [
+                expected_search_item
+            ]
+        }
+
+        expected_code = 200
+        mocked_wiki_request.return_value = expected_result, expected_code,
+        response, code = self.requestor.page_id_search()
+        mocked_wiki_request.assert_called_once_with(
+            self.requestor.url + "&list=search&srlimit=1&srsearch=" + self.requestor.key_words
+        )
 
         self.assertDictEqual(response, dict(
-            #title=self.expected_result['query']['pages'][1359783]['title'],
-            #extract=self.expected_result['query']['pages'][1359783]['extract']
+            title=expected_search_item['title'],
+            page_id=expected_search_item['pageid'],
+            mode="exact"
         ))
 
-    @mock.patch('requests.get')
-    def page_id_search_ok(self, mocked_requests_get):
+    @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.wiki_request')
+    def test_page_id_search_error(self, mocked_wiki_request):
+        expected_error = 'Network unavailable'
+        mocked_wiki_request.side_effect = requests.HTTPError(expected_error)
 
-        mocked_response = self._setup_mocked_response(self.expected_result)
-        mocked_requests_get.return_value = mocked_response
-        response, code = self.requestor.wiki_request(self.url_ask)
-        mocked_requests_get.assert_called_once_with(self.requestor.url)
+        with self.assertRaises(requests.HTTPError) as ctx:
+            _ = self.requestor.page_id_search()
+
+        self.assertEqual(str(ctx.exception), expected_error)
+
+    @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.page_id_search')
+    @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.wiki_request')
+    def test_extract_ok(self, mocked_page_id_search, mocked_wiki_request):
+
+        expected_code = 200
+        id_expected_result = {
+            "title": "Tour Eiffel",
+            "pageid": 1359783,
+            "mode": "exact"
+        }
+        wiki_expected_result = {
+            "query": {
+                "pages": {
+                    1359783: {
+                        "pageid": 1359783,
+                        "ns": 0,
+                        "title": "Tour Eiffel",
+                        "extract": "La tour Eiffel est une tour de fer puddlé de 324 mètres de hauteur (avec antennes) "
+                                   "située à Paris, à l’extrémité nord-ouest du parc du Champ-de-Mars en bordure de la "
+                                   "Seine dans le 7e arrondissement."
+                                   " Son adresse officielle est 5, avenue Anatole-France."
+                    }
+                }
+            }
+        }
+        id_mocked_response = self._setup_mocked_response(id_expected_result)
+        mocked_page_id_search.return_value = id_mocked_response, expected_code
+        wiki_mocked_response = self._setup_mocked_response(wiki_expected_result)
+        mocked_wiki_request.return_value = wiki_mocked_response, expected_code
+        response, code = self.requestor.extract()
+        mocked_page_id_search.assert_called_once_with(self.requestor.url +
+                                                      "&exintro=1&explaintext=1&exsentences=2&pageids=" +
+                                                      id_expected_result['pageid'])
 
         self.assertDictEqual(response, dict(
-            #title=self.expected_result['query']['pages'][1359783]['title'],
-            #extract=self.expected_result['query']['pages'][1359783]['extract']
+            title=id_expected_result['title'],
+            page_id=id_expected_result['pageid'],
+            mode=id_expected_result['mode'],
+            extract=wiki_expected_result['query']['pages'][1359783]['extract']
         ))
 
-    @mock.patch('requests.get')
-    def page_id_search_error(self, mocked_requests_get):
+    # @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.page_id_search')
+    # def test_extract_ok(self, mocked_page_id_search):
+    #
+    #     id_expected_result = {
+    #         "title": "Tour Eiffel",
+    #         "pageid": 1359783,
+    #         "mode": "exact"
+    #     }
+    #
+    #     id_mocked_response = self._setup_mocked_response(id_expected_result)
+    #     mocked_page_id_search.return_value = id_mocked_response
+    #     response, code = self.requestor.extract()
+    #     mocked_page_id_search.assert_called_once_with(self.requestor.url +
+    #                                                   "&exintro=1&explaintext=1&exsentences=2&pageids=" +
+    #                                                   id_expected_result['pageid'])
+    #
+    #     self.assertDictEqual(response, dict(
+    #         title=id_expected_result['title'],
+    #         page_id=id_expected_result['pageid'],
+    #         mode=id_expected_result['mode'],
+    #         extract=wiki_expected_result['query']['pages'][1359783]['extract']
+    #     ))
 
-        mocked_response = self._setup_mocked_response(self.expected_result)
-        mocked_requests_get.return_value = mocked_response
-        response, code = self.requestor.wiki_request(self.url_ask)
-        mocked_requests_get.assert_called_once_with(self.requestor.url)
-
-        self.assertDictEqual(response, dict(
-            #title=self.expected_result['query']['pages'][1359783]['title'],
-            #extract=self.expected_result['query']['pages'][1359783]['extract']
-        ))
-
-    @mock.patch('requests.get')
-    def extract_ok(self, mocked_requests_get):
-
-        mocked_response = self._setup_mocked_response(self.expected_result)
-        mocked_requests_get.return_value = mocked_response
-        response, code = self.requestor.wiki_request(self.url_ask)
-        mocked_requests_get.assert_called_once_with(self.requestor.url)
-
-        self.assertDictEqual(response, dict(
-            #title=self.expected_result['query']['pages'][1359783]['title'],
-            #extract=self.expected_result['query']['pages'][1359783]['extract']
-        ))
-    @mock.patch('requests.get')
-    def extract_error(self, mocked_requests_get):
-
-        mocked_response = self._setup_mocked_response(self.expected_result)
-        mocked_requests_get.return_value = mocked_response
-        response, code = self.requestor.wiki_request(self.url_ask)
-        mocked_requests_get.assert_called_once_with(self.requestor.url)
-
-        self.assertDictEqual(response, dict(
-            #title=self.expected_result['query']['pages'][1359783]['title'],
-            #extract=self.expected_result['query']['pages'][1359783]['extract']
-        ))
+    # @mock.patch('requests.get')
+    # def extract_error(self, mocked_requests_get):
+    #
+    #     mocked_response = self._setup_mocked_response(self.expected_result)
+    #     mocked_requests_get.return_value = mocked_response
+    #     response, code = self.requestor.extract()
+    #     mocked_requests_get.assert_called_once_with(self.requestor.url)
+    #
+    #     self.assertDictEqual(response, dict(
+    #         #title=self.expected_result['query']['pages'][1359783]['title'],
+    #         #extract=self.expected_result['query']['pages'][1359783]['extract']
+    #     ))
