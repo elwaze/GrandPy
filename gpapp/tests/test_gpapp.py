@@ -46,12 +46,12 @@ class TestParser():
             # expected result
             assert result == question[2]
 
-    def test_get_key_words(self):
+    def test_get_useful_key_words(self):
         """Checks that get_key_words() returns only the useful words"""
 
         # calling function
         for question in self.questions:
-            result = self.parser.get_key_words(question[2])
+            result = self.parser.get_useful_key_words(question[2])
             # expected result
             assert result == question[3]
 
@@ -161,7 +161,10 @@ class TestWiki(unittest.TestCase):
                         "pageid": 1359783,
                         "size": 129846,
                         "wordcount": 14637,
-                        "snippet": 'Pour les articles homonymes, voir <span class="searchmatch">Tour</span> <span class="searchmatch">Eiffel</span> (homonymie). L\'introduction de cet article est soit absente, soit non conforme aux conventions de Wikipédia',
+                        "snippet": 'Pour les articles homonymes, '
+                                   'voir <span class="searchmatch">Tour</span> <span class="searchmatch">Eiffel</span> '
+                                   '(homonymie). L\'introduction de cet article est soit absente, '
+                                   'soit non conforme aux conventions de Wikipédia',
                         "timestamp": "2020-03-10T03:15:13Z"
                     }
                 ]

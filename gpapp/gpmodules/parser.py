@@ -32,7 +32,7 @@ class Parser:
         question = [word for word in question if word not in self.stop_words]
         return question
 
-    def get_key_words(self, question):
+    def get_useful_key_words(self, question):
         """Selects the useful information to be inserted in the requests"""
         if not isinstance(question, (tuple, list, set)):
             raise TypeError('Question is not an iterable!')
@@ -44,5 +44,14 @@ class Parser:
                 index = question.index(word)
                 request = '+'.join(question[index + 1:])
                 break
+
+        return request
+
+    def get_keywords(self, question):
+        """Main function, running the parser.
+        """
+        question = self.question_split(question)
+        question = self.remove_stopwords(question)
+        request = self.get_useful_key_words(question)
 
         return request
