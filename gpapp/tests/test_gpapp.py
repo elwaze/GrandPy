@@ -5,7 +5,6 @@ import json
 import requests
 import unittest
 import unittest.mock as mock
-from io import BytesIO
 
 import config
 from gpapp.gpmodules.parser import Parser
@@ -13,7 +12,7 @@ from gpapp.gpmodules.map_requestor import MapRequestor
 from gpapp.gpmodules.wiki_requestor import WikiRequestor
 
 
-class TestParser:
+class TestParser():
     """Class for tests of functions contained in module parser.py"""
     def setup(self):
         """Setup for the parser tests"""
@@ -260,79 +259,39 @@ class TestWiki(unittest.TestCase):
 
         self.assertEqual(str(ctx.exception), expected_error)
 
-    @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.page_id_search')
     @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.wiki_request')
+    @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.page_id_search')
     def test_extract_ok(self, mocked_page_id_search, mocked_wiki_request):
 
         expected_code = 200
+        expected_page_id = 1359783
         id_expected_result = {
             "title": "Tour Eiffel",
-            "pageid": 1359783,
+            "page_id": expected_page_id,
             "mode": "exact"
         }
         wiki_expected_result = {
-            "query": {
-                "pages": {
-                    1359783: {
-                        "pageid": 1359783,
-                        "ns": 0,
-                        "title": "Tour Eiffel",
-                        "extract": "La tour Eiffel est une tour de fer puddlé de 324 mètres de hauteur (avec antennes) "
-                                   "située à Paris, à l’extrémité nord-ouest du parc du Champ-de-Mars en bordure de la "
-                                   "Seine dans le 7e arrondissement."
-                                   " Son adresse officielle est 5, avenue Anatole-France."
-                    }
+            "pages": {
+                expected_page_id: {
+                    "pageid": expected_page_id,
+                    "ns": 0,
+                    "title": "Tour Eiffel",
+                    "extract": "La tour Eiffel est une tour de fer puddlé de 324 mètres de hauteur (avec antennes) "
+                               "située à Paris, à l’extrémité nord-ouest du parc du Champ-de-Mars en bordure de la "
+                               "Seine dans le 7e arrondissement."
+                               " Son adresse officielle est 5, avenue Anatole-France."
                 }
             }
         }
-        id_mocked_response = self._setup_mocked_response(id_expected_result, magic=True)
-        mocked_page_id_search.return_value = id_mocked_response, expected_code
-        wiki_mocked_response = self._setup_mocked_response(wiki_expected_result, magic=True)
-        mocked_wiki_request.return_value = wiki_mocked_response, expected_code
+        mocked_page_id_search.return_value = id_expected_result, expected_code
+        mocked_wiki_request.return_value = wiki_expected_result, expected_code
         response, code = self.requestor.extract()
-        mocked_page_id_search.assert_called_once_with(self.requestor.url +
-                                                      "&exintro=1&explaintext=1&exsentences=2&pageids=" +
-                                                      str(id_expected_result['pageid']))
-
+        mocked_page_id_search.assert_called_once_with()
+        mocked_wiki_request.assert_called_once_with(
+            "{}&exintro=1&explaintext=1&exsentences=2&pageids={}".format(self.requestor.url, expected_page_id))
         self.assertDictEqual(response, dict(
             title=id_expected_result['title'],
-            page_id=id_expected_result['pageid'],
+            page_id=expected_page_id,
             mode=id_expected_result['mode'],
-            extract=wiki_expected_result['query']['pages'][1359783]['extract']
+            extract=wiki_expected_result['pages'][expected_page_id]['extract']
         ))
-
-    # @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.page_id_search')
-    # def test_extract_ok(self, mocked_page_id_search):
-    #
-    #     id_expected_result = {
-    #         "title": "Tour Eiffel",
-    #         "pageid": 1359783,
-    #         "mode": "exact"
-    #     }
-    #
-    #     id_mocked_response = self._setup_mocked_response(id_expected_result)
-    #     mocked_page_id_search.return_value = id_mocked_response
-    #     response, code = self.requestor.extract()
-    #     mocked_page_id_search.assert_called_once_with(self.requestor.url +
-    #                                                   "&exintro=1&explaintext=1&exsentences=2&pageids=" +
-    #                                                   id_expected_result['pageid'])
-    #
-    #     self.assertDictEqual(response, dict(
-    #         title=id_expected_result['title'],
-    #         page_id=id_expected_result['pageid'],
-    #         mode=id_expected_result['mode'],
-    #         extract=wiki_expected_result['query']['pages'][1359783]['extract']
-    #     ))
-
-    # @mock.patch('requests.get')
-    # def extract_error(self, mocked_requests_get):
-    #
-    #     mocked_response = self._setup_mocked_response(self.expected_result)
-    #     mocked_requests_get.return_value = mocked_response
-    #     response, code = self.requestor.extract()
-    #     mocked_requests_get.assert_called_once_with(self.requestor.url)
-    #
-    #     self.assertDictEqual(response, dict(
-    #         #title=self.expected_result['query']['pages'][1359783]['title'],
-    #         #extract=self.expected_result['query']['pages'][1359783]['extract']
-    #     ))

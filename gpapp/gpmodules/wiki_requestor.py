@@ -35,12 +35,13 @@ class WikiRequestor :
         ("exact" = page = place wanted ; "nearby" = closest place from the place wanted).
         """
 
-        kw_request = self.url + "&list=search&srlimit=1&srsearch=" + self.key_words
+        kw_request ="{}&list=search&srlimit=1&srsearch={}".format(self.url, self.key_words)
         result, code = self.wiki_request(kw_request)
         result = result['search']
         mode = "exact"
+        # if we don't have a result with the request by keywords, we make a request with coordinates
         if not result:
-            geo_request = self.url + "&list=geosearch&gsradius=5000&gslimit=1&gscoord=" + self.geometry
+            geo_request = "{}&list=geosearch&gsradius=5000&gslimit=1&gscoord={}".format(self.url, self.geometry)
             result, code = self.wiki_request(geo_request)
             result = result['geosearch']
             mode = "nearby"
@@ -61,10 +62,13 @@ class WikiRequestor :
         Uses the page_id get by page_id_search() to call wiki_request().
         :return: page_id_search result updated with the returned extract.
         """
+        # getting the page id
         data, code = self.page_id_search()
-        extract_request = self.url + "&exintro=1&explaintext=1&exsentences=2&pageids=" + data['page_id']
+        page_id = data['page_id']
+        extract_request = "{}&exintro=1&explaintext=1&exsentences=2&pageids={}".format(self.url, page_id)
+        # getting the extract
         result, code = self.wiki_request(extract_request)
-        extract = result['pages'][data['page_id']]['extract']
+        extract = result['pages'][page_id]['extract']
         data.update({"extract": extract})
 
         return data, 200
