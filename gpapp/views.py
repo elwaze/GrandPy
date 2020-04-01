@@ -58,8 +58,8 @@ def get_response(question):
         searched_place, code = map_request.google_request()
         if code == 200:
             if searched_place['status'] == "OK":
-                response['gp_response'] = "{}{}".format(responses.place_found, searched_place["address"])
-                geometry = "{lat: {}, lng: {}}".format(searched_place['latitude'], searched_place['longitude'])
+                response['gp_response'] = f"{responses.place_found}{searched_place['address']}"
+                geometry = f"lat: {searched_place['latitude']}, lng: {searched_place['longitude']}"
                 response['gmap_coord'] = geometry
                 # wiki request
                 wiki_request = wiki_requestor.WikiRequestor(geometry, parsed_question)
@@ -69,7 +69,7 @@ def get_response(question):
                     if wiki_result['mode'] == "exact":
                         response["wiki_response"] = responses.wiki_exact
                     elif wiki_result['mode'] == "nearby":
-                        response["wiki_response"] = "{} : {}".format(responses.wiki_nearby, wiki_result['title'])
+                        response["wiki_response"] = f"{responses.wiki_nearby} : {wiki_result['title']}"
                     response["wiki_extract"] = wiki_result['extract']
                 else:
                     response["wiki_response"] = responses.wiki_not_found

@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 
 import os
-import json
 import requests
 import unittest
 import unittest.mock as mock

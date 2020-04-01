@@ -49,7 +49,7 @@ function displayGoogleMap(gmapCoord){
     var map;
     function initMap(){
     map = new google.maps.Map(document.getElementById('map'), {
-          center: gmapCoord,
+          center: {gmapCoord},
           zoom: 8
         });
     }
