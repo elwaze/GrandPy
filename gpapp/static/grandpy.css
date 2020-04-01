@@ -45,6 +45,17 @@ html {
 body {
   margin-bottom: 60px; /* Margin bottom by footer height */
 }
+
+#map {
+    width: 400px;
+    height: 400px;
+    display: none;
+}
+
+.error {
+    color: red;
+}
+
 .footer {
   position: absolute;
   bottom: 0;

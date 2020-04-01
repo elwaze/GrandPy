@@ -68,7 +68,8 @@ class WikiRequestor :
         extract_request = f"{self.url}&exintro=1&explaintext=1&exsentences=2&pageids={page_id}"
         # getting the extract
         result, code = self.wiki_request(extract_request)
-        extract = result['pages'][page_id]['extract']
+        extract = result['pages'][f'{page_id}']['extract']
         data.update({"extract": extract})
+        
 
         return data, 200

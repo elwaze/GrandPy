@@ -3,6 +3,7 @@
 from flask import Flask, render_template, request, make_response
 import json
 from gpapp.gpmodules import parser, wiki_requestor, map_requestor, gp_responses
+import config
 
 
 app = Flask(__name__)
@@ -35,6 +36,8 @@ def api():
 #
 #     return response
 
+parser_ = parser.Parser()
+
 
 def get_response(question):
     """
@@ -47,8 +50,7 @@ def get_response(question):
     response = {}
 
     # parser
-    # parsed_question = parser.Parser.get_keywords(question)
-    parsed_question = "tour+eiffel"
+    parsed_question = parser_.get_keywords(question)
 
     if parsed_question == "":
         response["gp_response"] = responses.wrong_question
@@ -60,12 +62,12 @@ def get_response(question):
             if searched_place['status'] == "OK":
                 response['gp_response'] = f"{responses.place_found}{searched_place['address']}"
                 geometry = f"lat: {searched_place['latitude']}, lng: {searched_place['longitude']}"
-                response['gmap_coord'] = geometry
+                response['gmap_coord'] = {'lat': searched_place['latitude'], 'lng': searched_place['longitude']}
                 # wiki request
                 wiki_request = wiki_requestor.WikiRequestor(geometry, parsed_question)
                 wiki_result, code = wiki_request.extract()
                 if code == 200:
-                    response["wiki_link"] = f"{app.config.WIKILINK}{wiki_result['title'].replace(' ', '_')}"
+                    response["wiki_link"] = f"{config.WIKILINK}{wiki_result['title'].replace(' ', '_')}"
                     if wiki_result['mode'] == "exact":
                         response["wiki_response"] = responses.wiki_exact
                     elif wiki_result['mode'] == "nearby":
