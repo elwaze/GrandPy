@@ -18,6 +18,12 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/api/')
+def api():
+    question = request.args.get('question')
+    return make_response({'test': 155, 'question': question})
+
+
 @app.route('/insert_result/', methods=['POST'])
 def insert_result():
     question = request.form['']
