@@ -18,11 +18,11 @@ footer {
     text-align: center;
 }
 
-.dialog {
-  width: 75%;
+#chat {
+  width: 100%;
   vertical-align: center;
-  text-align: center;
-  background-color: #333;
+  text-align: justify;
+  background-color: #b8dbda;
 }
 
 .well {
@@ -40,15 +40,26 @@ footer {
 
 html {
   position: relative;
+  width: 100%;
   min-height: 100%;
 }
 body {
   margin-bottom: 60px; /* Margin bottom by footer height */
 }
 
-#map {
-    width: 400px;
+.question {
+    font-weight: bold;
+}
+
+.gp {
+    margin-left: 20px;
+}
+
+.map {
+    width: 100%;
     height: 400px;
+    margin-top: 20px;
+    margin-bottom: 20px;
     display: none;
 }
 

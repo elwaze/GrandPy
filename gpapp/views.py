@@ -51,6 +51,7 @@ def get_response(question):
 
     # parser
     parsed_question = parser_.get_keywords(question)
+    print(parsed_question)
 
     if parsed_question == "":
         response["gp_response"] = responses.wrong_question
@@ -61,17 +62,17 @@ def get_response(question):
         if code == 200:
             if searched_place['status'] == "OK":
                 response['gp_response'] = f"{responses.place_found}{searched_place['address']}"
-                geometry = f"lat: {searched_place['latitude']}, lng: {searched_place['longitude']}"
+                geometry = f"{searched_place['latitude']}|{searched_place['longitude']}"
                 response['gmap_coord'] = {'lat': searched_place['latitude'], 'lng': searched_place['longitude']}
                 # wiki request
-                wiki_request = wiki_requestor.WikiRequestor(geometry, parsed_question)
+                wiki_request = wiki_requestor.WikiRequestor(geometry)
                 wiki_result, code = wiki_request.extract()
                 if code == 200:
                     response["wiki_link"] = f"{config.WIKILINK}{wiki_result['title'].replace(' ', '_')}"
-                    if wiki_result['mode'] == "exact":
-                        response["wiki_response"] = responses.wiki_exact
-                    elif wiki_result['mode'] == "nearby":
-                        response["wiki_response"] = f"{responses.wiki_nearby} : {wiki_result['title']}"
+                    # if wiki_result['mode'] == "exact":
+                    #     response["wiki_response"] = responses.wiki_exact
+                    # elif wiki_result['mode'] == "nearby":
+                    response["wiki_response"] = f"{responses.wiki_ok}"
                     response["wiki_extract"] = wiki_result['extract']
                 else:
                     response["wiki_response"] = responses.wiki_not_found

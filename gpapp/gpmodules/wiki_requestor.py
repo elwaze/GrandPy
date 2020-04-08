@@ -8,8 +8,8 @@ import requests
 class WikiRequestor :
     """Class which requests the wikipedia API."""
 
-    def __init__(self, geometry, key_words):
-        self.key_words = key_words
+    def __init__(self, geometry):
+        # self.key_words = key_words
         self.geometry = geometry
         self.url = config.WIKIPEDIA_URL
 
@@ -25,6 +25,7 @@ class WikiRequestor :
         if not response.ok:
             response.raise_for_status()
         data = response.json()
+        print(data)
 
         return data['query'], 200
 
@@ -35,16 +36,15 @@ class WikiRequestor :
         ("exact" = page = place wanted ; "nearby" = closest place from the place wanted).
         """
 
-        kw_request = f"{self.url}&list=search&srlimit=1&srsearch={self.key_words}"
-        result, code = self.wiki_request(kw_request)
-        result = result['search']
-        mode = "exact"
-        # if we don't have a result with the request by keywords, we make a request with coordinates
-        if not result:
-            geo_request = f"{self.url}&list=geosearch&gsradius=5000&gslimit=1&gscoord={self.geometry}"
-            result, code = self.wiki_request(geo_request)
-            result = result['geosearch']
-            mode = "nearby"
+        # kw_request = f"{self.url}&list=search&srlimit=1&srsearch={self.key_words}"
+        # result, code = self.wiki_request(kw_request)
+        # result = result['search']
+        # mode = "exact"
+        # # if we don't have a result with the request by keywords, we make a request with coordinates
+        # if not result:
+        geo_request = f"{self.url}&list=geosearch&gsradius=5000&gslimit=1&gscoord={self.geometry}"
+        result, code = self.wiki_request(geo_request)
+        result = result['geosearch']
 
         page_id = result[0]['pageid']
         title = result[0]['title']
@@ -52,7 +52,6 @@ class WikiRequestor :
         result = dict(
             page_id=page_id,
             title=title,
-            mode=mode
         )
         return result, 200
 
@@ -70,6 +69,5 @@ class WikiRequestor :
         result, code = self.wiki_request(extract_request)
         extract = result['pages'][f'{page_id}']['extract']
         data.update({"extract": extract})
-        
 
         return data, 200

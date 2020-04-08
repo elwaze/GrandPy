@@ -124,9 +124,8 @@ class TestWiki(unittest.TestCase):
     def setUp(self):
         """Setup for the wikipedia requestor tests"""
         geometry = '48.85837|2.294481'
-        key_words = 'tour+eiffel'
         self.url_ask = "fake url for test"
-        self.requestor = WikiRequestor(geometry, key_words)
+        self.requestor = WikiRequestor(geometry)
 
     def _setup_mocked_response(self, response, **options):
         magic = options.pop('magic', False)
@@ -242,13 +241,12 @@ class TestWiki(unittest.TestCase):
         mocked_wiki_request.return_value = expected_result, expected_code,
         response, code = self.requestor.page_id_search()
         mocked_wiki_request.assert_called_once_with(
-            self.requestor.url + "&list=search&srlimit=1&srsearch=" + self.requestor.key_words
+            self.requestor.url + "&list=geosearch&gsradius=5000&gslimit=1&gscoord=" + self.requestor.geometry
         )
 
         self.assertDictEqual(response, dict(
             title=expected_search_item['title'],
             page_id=expected_search_item['pageid'],
-            mode="exact"
         ))
 
     @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.wiki_request')
@@ -294,6 +292,5 @@ class TestWiki(unittest.TestCase):
         self.assertDictEqual(response, dict(
             title=id_expected_result['title'],
             page_id=expected_page_id,
-            mode=id_expected_result['mode'],
             extract=wiki_expected_result['pages'][expected_page_id]['extract']
         ))
