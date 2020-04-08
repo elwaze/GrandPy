@@ -13,12 +13,12 @@ function reply() {
     var question = $('#question').val();
     displayQuestion(question);
     $('#loader').show();
+    console.log(question)
     requestAPI(question, on_response);
 }
 
 function on_response(response) {
     try {
-        console.log('response', response);
         displayResponse(response);
         if (response.gmap_coord) {
             displayGoogleMap(response.gmap_coord);
@@ -40,7 +40,6 @@ function displayQuestion(question){
 // ajax
 function requestAPI(users_question, callback) {
     $.getJSON('https://elwaze-grandpybot.herokuapp.com/api/', {question: users_question}, function(data) {
-        console.log('response type =>', typeof response)
         callback(data);
         $('#question').val('');
     });
@@ -48,7 +47,6 @@ function requestAPI(users_question, callback) {
 
 // display grandpy response
 function displayResponse(response){
-//    $('#chat').append('<p>' + JSON.parse(response).gp_response + '</p>');
     $('#chat').append('<div class="gp"><p>🤖 👴 ' + response.gp_response + '</p></div>');
 }
 

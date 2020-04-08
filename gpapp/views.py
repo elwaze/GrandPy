@@ -23,7 +23,6 @@ def index():
 def api():
     question = request.args.get('question')
     response = json.dumps(get_response(question))
-    # response.status_code = 200
     return make_response(response)
 
 
