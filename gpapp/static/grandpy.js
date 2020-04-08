@@ -39,7 +39,7 @@ function displayQuestion(question){
 
 // ajax
 function requestAPI(users_question, callback) {
-    $.getJSON('http://127.0.0.1:5000/api/', {question: users_question}, function(data) {
+    $.getJSON('https://elwaze-grandpybot.herokuapp.com/api/', {question: users_question}, function(data) {
         console.log('response type =>', typeof response)
         callback(data);
         $('#question').val('');
