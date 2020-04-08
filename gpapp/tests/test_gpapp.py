@@ -18,12 +18,16 @@ class TestParser():
         self.parser = Parser()
         self.questions = [
             ("dis, grand-py, tu peux me donner l'adresse de la Tour Eiffel ?",
-             ["dis", "grand-py", "tu", "peux", "me", "donner", "l", "adresse", "de", "la", "tour", "eiffel"],
+             ["dis", "grand-py", "tu", "peux", "me", "donner",
+              "l", "adresse", "de", "la", "tour", "eiffel"],
              ["dis", "grand-py", "donner", "adresse", "tour", "eiffel"],
              "tour+eiffel"),
-            ("Salut pépé ! Où je peux trouver le parc de la tête d'or à Lyon ?",
-             ["salut", "pépé", "où", "je", "peux", "trouver", "le", "parc", "de", "la", "tête", "d", "or", "à", "lyon"],
-             ["salut", "pépé", "où", "trouver", "parc", "tête", "or", "à", "lyon"],
+            ("Salut pépé ! Où je peux trouver "
+             "le parc de la tête d'or à Lyon ?",
+             ["salut", "pépé", "où", "je", "peux", "trouver", "le", "parc",
+              "de", "la", "tête", "d", "or", "à", "lyon"],
+             ["salut", "pépé", "où", "trouver",
+              "parc", "tête", "or", "à", "lyon"],
              "parc+tête+or+,+lyon")
         ]
 
@@ -37,7 +41,8 @@ class TestParser():
             assert result == question[1]
 
     def test_question_cleaned(self):
-        """Checks that remove_stopwords() returns a list of words not in the stopwords"""
+        """Checks that remove_stopwords() returns
+        a list of words not in the stopwords"""
 
         # calling function
         for question in self.questions:
@@ -72,7 +77,8 @@ class TestMap(unittest.TestCase):
         expected_result = {
             "results": [
                 {
-                    "formatted_address": "Champ de Mars, 5 Avenue Anatole France, 75007 Paris",
+                    "formatted_address":
+                        "Champ de Mars, 5 Avenue Anatole France, 75007 Paris",
                     "geometry": {
                         "location": {
                             "lat": 48.85837,
@@ -93,8 +99,10 @@ class TestMap(unittest.TestCase):
         self.assertDictEqual(response, dict(
             status=expected_result['status'],
             address=expected_result['results'][0]['formatted_address'],
-            latitude=expected_result['results'][0]['geometry']['location']['lat'],
-            longitude=expected_result['results'][0]['geometry']['location']['lng'],
+            latitude=expected_result[
+                'results'][0]['geometry']['location']['lat'],
+            longitude=expected_result[
+                'results'][0]['geometry']['location']['lng'],
         ))
 
     @mock.patch('requests.get')
@@ -106,7 +114,8 @@ class TestMap(unittest.TestCase):
             "message": 'unknown issue'
         }
 
-        mocked_response = self._setup_mocked_response(expected_result, ok_status=False)
+        mocked_response = self._setup_mocked_response(
+            expected_result, ok_status=False)
         mocked_requests_get.return_value = mocked_response
         response, code = self.requestor.google_request()
 
@@ -160,9 +169,11 @@ class TestWiki(unittest.TestCase):
                         "size": 129846,
                         "wordcount": 14637,
                         "snippet": 'Pour les articles homonymes, '
-                                   'voir <span class="searchmatch">Tour</span> <span class="searchmatch">Eiffel</span> '
-                                   '(homonymie). L\'introduction de cet article est soit absente, '
-                                   'soit non conforme aux conventions de Wikipédia',
+                                   'voir <span class="searchmatch">Tour</span>'
+                                   ' <span class="searchmatch">Eiffel</span> '
+                                   '(homonymie). L\'introduction de cet '
+                                   'article est soit absente, soit non '
+                                   'conforme aux conventions de Wikipédia',
                         "timestamp": "2020-03-10T03:15:13Z"
                     }
                 ]
@@ -187,10 +198,13 @@ class TestWiki(unittest.TestCase):
                         "pageid": 1359783,
                         "ns": 0,
                         "title": "Tour Eiffel",
-                        "extract": "La tour Eiffel est une tour de fer puddlé de 324 mètres de hauteur (avec antennes) "
-                                   "située à Paris, à l’extrémité nord-ouest du parc du Champ-de-Mars en bordure de la "
-                                   "Seine dans le 7e arrondissement."
-                                   " Son adresse officielle est 5, avenue Anatole-France."
+                        "extract": "La tour Eiffel est une tour de fer puddlé"
+                                   " de 324 mètres de hauteur (avec antennes) "
+                                   "située à Paris, à l’extrémité nord-ouest "
+                                   "du parc du Champ-de-Mars en bordure de la"
+                                   " Seine dans le 7e arrondissement."
+                                   " Son adresse officielle est 5, "
+                                   "avenue Anatole-France."
                     }
                 }
             }
@@ -206,7 +220,8 @@ class TestWiki(unittest.TestCase):
     @mock.patch('requests.get')
     def test_wiki_request_raise_for_status(self, mocked_requests_get):
 
-        mocked_response = self._setup_mocked_response({'query': None}, ok=False)
+        mocked_response = self._setup_mocked_response(
+            {'query': None}, ok=False)
         mocked_requests_get.return_value = mocked_response
 
         self.requestor.wiki_request(self.url_ask)
@@ -222,9 +237,10 @@ class TestWiki(unittest.TestCase):
             "size": 129846,
             "wordcount": 14637,
             "snippet": (
-                'Pour les articles homonymes, voir <span class="searchmatch">Tour</span> '
-                '<span class="searchmatch">Eiffel</span> (homonymie). '
-                'L\'introduction de cet article est soit absente, soit non conforme aux conventions de Wikipédia'
+                'Pour les articles homonymes, voir <span class="searchmatch">'
+                'Tour</span> <span class="searchmatch">Eiffel</span> '
+                '(homonymie). L\'introduction de cet article est soit absente,'
+                ' soit non conforme aux conventions de Wikipédia'
             ),
             "timestamp": "2020-03-10T03:15:13Z"
         }
@@ -232,7 +248,7 @@ class TestWiki(unittest.TestCase):
             "searchinfo": {
                 "totalhits": 3882
             },
-            "search": [
+            "geosearch": [
                 expected_search_item
             ]
         }
@@ -241,7 +257,8 @@ class TestWiki(unittest.TestCase):
         mocked_wiki_request.return_value = expected_result, expected_code,
         response, code = self.requestor.page_id_search()
         mocked_wiki_request.assert_called_once_with(
-            self.requestor.url + "&list=geosearch&gsradius=5000&gslimit=1&gscoord=" + self.requestor.geometry
+            self.requestor.url + "&list=geosearch&gsradius=5000&gslimit"
+                                 "=1&gscoord=" + self.requestor.geometry
         )
 
         self.assertDictEqual(response, dict(
@@ -262,13 +279,12 @@ class TestWiki(unittest.TestCase):
     @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.wiki_request')
     @mock.patch('gpapp.gpmodules.wiki_requestor.WikiRequestor.page_id_search')
     def test_extract_ok(self, mocked_page_id_search, mocked_wiki_request):
-
+        self.maxDiff = None
         expected_code = 200
-        expected_page_id = 1359783
+        expected_page_id = '1359783'
         id_expected_result = {
             "title": "Tour Eiffel",
-            "page_id": expected_page_id,
-            "mode": "exact"
+            "page_id": expected_page_id
         }
         wiki_expected_result = {
             "pages": {
@@ -276,10 +292,13 @@ class TestWiki(unittest.TestCase):
                     "pageid": expected_page_id,
                     "ns": 0,
                     "title": "Tour Eiffel",
-                    "extract": "La tour Eiffel est une tour de fer puddlé de 324 mètres de hauteur (avec antennes) "
-                               "située à Paris, à l’extrémité nord-ouest du parc du Champ-de-Mars en bordure de la "
+                    "extract": "La tour Eiffel est une tour de fer puddlé de "
+                               "324 mètres de hauteur (avec antennes) "
+                               "située à Paris, à l’extrémité nord-ouest du "
+                               "parc du Champ-de-Mars en bordure de la "
                                "Seine dans le 7e arrondissement."
-                               " Son adresse officielle est 5, avenue Anatole-France."
+                               " Son adresse officielle est 5, "
+                               "avenue Anatole-France."
                 }
             }
         }
@@ -288,7 +307,8 @@ class TestWiki(unittest.TestCase):
         response, code = self.requestor.extract()
         mocked_page_id_search.assert_called_once_with()
         mocked_wiki_request.assert_called_once_with(
-            "{}&exintro=1&explaintext=1&exsentences=2&pageids={}".format(self.requestor.url, expected_page_id))
+            "{}&exintro=1&explaintext=1&exsentences=2&pageids={}".format(
+                self.requestor.url, expected_page_id))
         self.assertDictEqual(response, dict(
             title=id_expected_result['title'],
             page_id=expected_page_id,

@@ -5,7 +5,7 @@ import config
 import requests
 
 
-class MapRequestor :
+class MapRequestor:
     """Class which requests the google maps API."""
 
     @property

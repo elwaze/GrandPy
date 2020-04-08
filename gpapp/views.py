@@ -27,15 +27,6 @@ def api():
     return make_response(response)
 
 
-# @app.route('/insert_result/', methods=['POST'])
-# def insert_result():
-#     question = request.form['']
-#
-#     response = make_response(json.dumps(get_response(question)))
-#     response.status_code = 200
-#
-#     return response
-
 parser_ = parser.Parser()
 
 
@@ -51,7 +42,6 @@ def get_response(question):
 
     # parser
     parsed_question = parser_.get_keywords(question)
-    print(parsed_question)
 
     if parsed_question == "":
         response["gp_response"] = responses.wrong_question
@@ -61,17 +51,18 @@ def get_response(question):
         searched_place, code = map_request.google_request()
         if code == 200:
             if searched_place['status'] == "OK":
-                response['gp_response'] = f"{responses.place_found}{searched_place['address']}"
-                geometry = f"{searched_place['latitude']}|{searched_place['longitude']}"
-                response['gmap_coord'] = {'lat': searched_place['latitude'], 'lng': searched_place['longitude']}
+                response['gp_response'] = f"{responses.place_found}" \
+                                          f"{searched_place['address']}"
+                geometry = f"{searched_place['latitude']}|" \
+                           f"{searched_place['longitude']}"
+                response['gmap_coord'] = {'lat': searched_place['latitude'],
+                                          'lng': searched_place['longitude']}
                 # wiki request
                 wiki_request = wiki_requestor.WikiRequestor(geometry)
                 wiki_result, code = wiki_request.extract()
                 if code == 200:
-                    response["wiki_link"] = f"{config.WIKILINK}{wiki_result['title'].replace(' ', '_')}"
-                    # if wiki_result['mode'] == "exact":
-                    #     response["wiki_response"] = responses.wiki_exact
-                    # elif wiki_result['mode'] == "nearby":
+                    title = wiki_result['title'].replace(' ', '_')
+                    response["wiki_link"] = f"{config.WIKILINK}{title}"
                     response["wiki_response"] = f"{responses.wiki_ok}"
                     response["wiki_extract"] = wiki_result['extract']
                 else:

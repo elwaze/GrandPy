@@ -5,7 +5,7 @@ import config
 import requests
 
 
-class WikiRequestor :
+class WikiRequestor:
     """Class which requests the wikipedia API."""
 
     def __init__(self, geometry):
@@ -17,7 +17,6 @@ class WikiRequestor :
         """
         Initial request of Wiki API.
         :param url: url for the request
-        (depending if it's a request by key words or by geolocation).
         :return: response received from thi API.
         """
 
@@ -25,24 +24,17 @@ class WikiRequestor :
         if not response.ok:
             response.raise_for_status()
         data = response.json()
-        print(data)
 
         return data['query'], 200
 
     def page_id_search(self):
         """
-        Calls wiki_request() with the needed parameters to get the page_id and the title of the wanted page.
-        :return: dictionary with the page_id, the page title and the "mode"
-        ("exact" = page = place wanted ; "nearby" = closest place from the place wanted).
+        Calls wiki_request() with the needed parameters
+        to get the page_id and the title of the wanted page.
+        :return: dictionary with the page_id and the page title.
         """
-
-        # kw_request = f"{self.url}&list=search&srlimit=1&srsearch={self.key_words}"
-        # result, code = self.wiki_request(kw_request)
-        # result = result['search']
-        # mode = "exact"
-        # # if we don't have a result with the request by keywords, we make a request with coordinates
-        # if not result:
-        geo_request = f"{self.url}&list=geosearch&gsradius=5000&gslimit=1&gscoord={self.geometry}"
+        geo_request = f"{self.url}&list=geosearch&gsradius=5000" \
+                      f"&gslimit=1&gscoord={self.geometry}"
         result, code = self.wiki_request(geo_request)
         result = result['geosearch']
 
@@ -64,7 +56,8 @@ class WikiRequestor :
         # getting the page id
         data, code = self.page_id_search()
         page_id = data['page_id']
-        extract_request = f"{self.url}&exintro=1&explaintext=1&exsentences=2&pageids={page_id}"
+        extract_request = f"{self.url}&exintro=1&explaintext" \
+                          f"=1&exsentences=2&pageids={page_id}"
         # getting the extract
         result, code = self.wiki_request(extract_request)
         extract = result['pages'][f'{page_id}']['extract']

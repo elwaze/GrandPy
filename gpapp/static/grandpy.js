@@ -1,11 +1,20 @@
 $(document).ready(function() {
-    $('#reply').click(function() {
-        var question = $('#question').val();
-        displayQuestion(question);
-        $('#loader').show();
-        requestAPI(question, on_response);
-    });
+    $('#reply').click(reply);
+    $(document).on('keypress', function(event) {
+        if (event.which === 13) {
+            event.preventDefault();
+            reply();
+            return false;
+        }
+    })
 });
+
+function reply() {
+    var question = $('#question').val();
+    displayQuestion(question);
+    $('#loader').show();
+    requestAPI(question, on_response);
+}
 
 function on_response(response) {
     try {
@@ -32,7 +41,8 @@ function displayQuestion(question){
 function requestAPI(users_question, callback) {
     $.getJSON('http://127.0.0.1:5000/api/', {question: users_question}, function(data) {
         console.log('response type =>', typeof response)
-        callback(data)
+        callback(data);
+        $('#question').val('');
     });
 }
 

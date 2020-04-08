@@ -1,15 +1,18 @@
 #! /usr/bin/env python
-""" Module parsing the user's question to get keywords to insert in requests."""
+""" Module parsing the user's question
+to get keywords to insert in requests."""
 
 import json
 import re
+import config
+
 
 class Parser:
     """Class which returns the keywords."""
 
     def __init__(self):
         """Loads filters contained in the 'stop_words.json' file"""
-        with open('gpapp/gpmodules/stop_words.json') as file:
+        with open(config.STOP_WORDS_FILENAME) as file:
             stop_words = json.loads(file.read())
         self.stop_words = stop_words["stop_words"]
         self.punctuation_characters = stop_words["punctuation_characters"]
@@ -26,7 +29,8 @@ class Parser:
         return question
 
     def remove_stopwords(self, question):
-        """Removes the useless stopwords contained in the 'stop_words.json file"""
+        """Removes the useless stopwords
+        contained in the 'stop_words.json file"""
         if not isinstance(question, (tuple, list, set)):
             raise TypeError('Question is not an iterable!')
         question = [word for word in question if word not in self.stop_words]
