@@ -1,3 +1,11 @@
+// change placeholder for small screens
+$(window).resize(function(){
+    if ($(window).width() <= 600){
+        $(':input').placeholder = "Tu cherches quoi ?";
+    }
+});
+
+
 $(document).ready(function() {
     $('#reply').click(reply);
     $(document).on('keypress', function(event) {
