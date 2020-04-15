@@ -1,10 +1,8 @@
-// change placeholder for small screens
-$(window).resize(function(){
-    if ($(window).width() <= 600){
-        $(':input').placeholder = "Tu cherches quoi ?";
-    }
-});
-
+var DEBUG = false
+var URL = 'https://elwaze-grandpybot.herokuapp.com/api/'
+if (DEBUG) {
+    URL = 'http://127.0.0.1:5000/api/'
+}
 
 $(document).ready(function() {
     $('#reply').click(reply);
@@ -46,7 +44,7 @@ function displayQuestion(question){
 
 // ajax
 function requestAPI(users_question, callback) {
-    $.getJSON('https://elwaze-grandpybot.herokuapp.com/api/', {question: users_question}, function(data) {
+    $.getJSON(URL, {question: users_question}, function(data) {
         callback(data);
         $('#question').val('');
     });
@@ -58,10 +56,11 @@ function displayResponse(response){
 }
 
 // display map
-var gmapCoord = {lat: -25.344, lng: 131.036}
-
 var map;
     function initMap(map_id, gmapCoord){
+    if (!map_id || !gmapCoord) {
+        return;
+    }
     map = new google.maps.Map(document.getElementById(map_id), {
           center: gmapCoord,
           zoom: 12
@@ -72,12 +71,11 @@ var map;
     });
     }
 
-function displayGoogleMap(coord){
-    map_id = coord.lat.toString()+'_'+coord.lng.toString
-    $('#chat').append('<div class="map" id="'+map_id+'"></div>');
+function displayGoogleMap(coord) {
+    map_id = coord.lat.toString()+'_'+coord.lng.toString()
+    $('#chat').append('<div class="map" id="' + map_id + '"></div>');
     $('.map').show();
-    gmapCoord = coord;
-    initMap(map_id, gmapCoord);
+    initMap(map_id, coord);
 }
 
 // display wikipedia text

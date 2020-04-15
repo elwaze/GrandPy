@@ -1,5 +1,5 @@
 # GrandPy
-Openclassrooms DA-Python P7
+Openclassrooms DA-Python P7: 
 Créez GrandPyBot, le papy-robot
 
 ### Searching an address, showing the associated map and wikipedia extract
@@ -7,7 +7,7 @@ Créez GrandPyBot, le papy-robot
 The user enters a place to find.
 The webapp requests googlemaps API and wikipedia API, and shows the address found, the associated map and the wikipedia extract as response.
 
-### Constraint
+### Constraints
 
 >responsive interface
 >Test Driven Development
