@@ -13,7 +13,6 @@ function reply() {
     var question = $('#question').val();
     displayQuestion(question);
     $('#loader').show();
-    console.log(question)
     requestAPI(question, on_response);
 }
 
