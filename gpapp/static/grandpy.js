@@ -1,5 +1,5 @@
 var DEBUG = false
-var URL = 'https://elwaze-grandpybot.herokuapp.com/api/'
+var URL = 'api/'
 if (DEBUG) {
     URL = 'http://127.0.0.1:5000/api/'
 }
