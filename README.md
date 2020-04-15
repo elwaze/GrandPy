@@ -35,6 +35,8 @@ set GOOGLE_API_KEY=<your google api key>
 set SECRET_KEY=<Flask secret key>
 ```
 
+> Setting your local url in grandpy.js (l.49)
+
 > Run the server:
 ```bash
 python run.py
