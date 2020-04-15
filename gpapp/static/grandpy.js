@@ -1,9 +1,3 @@
-var DEBUG = false
-var URL = 'api/'
-if (DEBUG) {
-    URL = 'http://127.0.0.1:5000/api/'
-}
-
 $(document).ready(function() {
     $('#reply').click(reply);
     $(document).on('keypress', function(event) {
@@ -44,7 +38,7 @@ function displayQuestion(question){
 
 // ajax
 function requestAPI(users_question, callback) {
-    $.getJSON(URL, {question: users_question}, function(data) {
+    $.getJSON('api/', {question: users_question}, function(data) {
         callback(data);
         $('#question').val('');
     });
