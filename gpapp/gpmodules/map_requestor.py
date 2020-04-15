@@ -10,7 +10,7 @@ class MapRequestor:
 
     @property
     def url(self):
-        return "".join([self.maps_url, self.key_words, "&key=", self.key])
+        return f"{self.maps_url}{self.key_words}&key={self.key}"
 
     def __init__(self, key_words):
         self.key = config.GOOGLE_KEY
